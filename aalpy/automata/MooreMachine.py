@@ -33,7 +33,11 @@ class MooreMachine(DeterministicAutomaton):
             self.current_state = self.current_state.transitions[letter]
         return self.current_state.output
 
-    def compute_characterization_set(self, char_set_init=None, online_suffix_closure=True, split_all_blocks=True):
+    def compute_characterization_set(self, char_set_init=None, online_suffix_closure=True, split_all_blocks=True,
+                                     return_defects=False):
         return super(MooreMachine, self).compute_characterization_set(char_set_init if char_set_init else [()],
                                                              online_suffix_closure,
                                                              split_all_blocks)
+
+    def get_canonicity_violation(self):
+        return super(MooreMachine, self).compute_characterization_set(char_set_init=[()], return_defect=True)

@@ -124,6 +124,14 @@ class Automaton(ABC):
         self.current_state = origin_state
         return [self.step(s) for s in seq]
 
+    def execute_sequence_return_states(self, origin_state, seq):
+        self.current_state = origin_state
+        reached_states = []
+        for s in seq:
+            self.step(s)
+            reached_states.append(self.current_state)
+        return reached_states
+
     def save(self, file_path='LearnedModel'):
         from aalpy.utils import save_automaton_to_file
         save_automaton_to_file(self, path=file_path)
@@ -131,6 +139,7 @@ class Automaton(ABC):
     def visualize(self, path='LearnedModel', file_type='pdf', display_same_state_transitions=True):
         from aalpy.utils import visualize_automaton
         visualize_automaton(self, path, file_type, display_same_state_transitions)
+
 
 class DeterministicAutomaton(Automaton):
 
@@ -247,7 +256,7 @@ class DeterministicAutomaton(Automaton):
                     if (next_s1, next_s2) not in visited:
                         to_explore.append((next_s1, next_s2, new_prefix))
 
-        raise SystemExit('Distinguishing sequence could not be computed (Non-canonical automaton).')
+        return None
 
     def compute_output_seq(self, state, sequence):
         """
@@ -264,7 +273,7 @@ class DeterministicAutomaton(Automaton):
         self.current_state = state_save
         return output
 
-    def compute_characterization_set(self, char_set_init=None, online_suffix_closure=True, split_all_blocks=True):
+    def compute_characterization_set(self, char_set_init=None, online_suffix_closure=True, split_all_blocks=True, return_defect=False):
         """
         Computation of a characterization set, that is, a set of sequences that can distinguish all states in the
         automation. The implementation follows the approach for finding multiple preset diagnosing experiments described
@@ -307,6 +316,11 @@ class DeterministicAutomaton(Automaton):
             split_state1 = block_to_split[0]
             split_state2 = block_to_split[1]
             dist_seq = self.find_distinguishing_seq(split_state1, split_state2)
+            if dist_seq is None:
+                if return_defect:
+                    return split_state1, split_state2
+                raise SystemExit('Distinguishing sequence could not be computed (Non-canonical automaton).')
+
             assert ((not split_all_blocks) or (dist_seq not in char_set))
 
             # in L*-based learning, we use suffix-closed column labels, so it makes sense to use a suffix-closed
@@ -337,6 +351,8 @@ class DeterministicAutomaton(Automaton):
                     blocks.append(new_block)
 
         char_set = list(set(char_set))
+        if return_defect:
+            return None
         return char_set
 
     def _split_blocks(self, blocks, seq):
@@ -358,3 +374,6 @@ class DeterministicAutomaton(Automaton):
             for new_block in block_after_split.values():
                 new_blocks.append(new_block)
         return new_blocks
+
+    def get_canonicity_violation(self):
+        return self.compute_characterization_set(return_defect=True)

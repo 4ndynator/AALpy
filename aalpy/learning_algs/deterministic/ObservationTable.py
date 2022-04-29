@@ -209,23 +209,39 @@ class ObservationTable:
 
         return automaton
 
-    def shrink(self, hypothesis):
-        'WIP'
-        init_set = [tuple()] if self.automaton_type != 'mealy' else []
-        init_set.extend(self.A)
-        e_set = hypothesis.compute_characterization_set(char_set_init=init_set)
-        ordered_e_set = list(init_set)
-        ordered_e_set.extend([el for el in e_set if el not in init_set])
+    # https://learnlib.de/wp-content/uploads/2013/05/introduction-to-automata-learning-sfm2011.pdf page 26/7
+    def ensure_semantic_suffix_closedness(self, hypothesis):
+        defect = hypothesis.get_canonicity_violation()
+        if defect is None:
+            return hypothesis
+        else:
+            suffix_to_add = None
+            state1, state2 = defect[0], defect[1]
+            #print(state1.state_id, state2.state_id)
+            diff_suffix = None
+            for i, d in enumerate(self.E):
+                if self.T[state1.prefix][i] != self.T[state2.prefix][i]:
+                    diff_suffix = d
 
-        self.T.clear()
-        self.E = ordered_e_set
+            print('diff suffix', diff_suffix)
+            assert diff_suffix
 
-        for s in list(self.S) + list(self.s_dot_a()):
-            for e in self.E:
-                out = hypothesis.execute_sequence(hypothesis.initial_state, s + e)
-                self.T[s] += (out[-1],)
+            u, u_prime = state1, state2
+            i = 0
+            while u.prefix != u_prime.prefix:
+                i += 1
+                if i == len(diff_suffix):
+                    print('SHOULD NOT BE RACHED')
+                    break
+                suf = (diff_suffix[i],) # diff_suffix[i:]
+                u = hypothesis.execute_sequence_return_states(u, suf)[-1]
+                u_prime = hypothesis.execute_sequence_return_states(u_prime, suf)[-1]
 
-        incons = self.get_causes_of_inconsistency()
-        print("INCONSISTENCY",incons)
-        clos = self.get_rows_to_close()
-        print("CLOSEDNESS",clos)
+            suffix_to_add = diff_suffix[i:]
+            print('SUFFIX TO ADD', suffix_to_add)
+            if suffix_to_add in self.E:
+                print('SUFFIX ALREADY IN E')
+            if suffix_to_add is None:
+                print('NOT WORKING')
+
+        exit()

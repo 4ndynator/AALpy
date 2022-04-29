@@ -22,7 +22,7 @@ def random_mealy_example(alphabet_size, number_of_states, output_size=8):
     state_origin_eq_oracle = StatePrefixEqOracle(alphabet, sul_mealy, walks_per_state=10, walk_len=15)
 
     learned_mealy = run_Lstar(alphabet, sul_mealy, random_walk_eq_oracle, automaton_type='mealy',
-                              cex_processing='longest_prefix')
+                              cex_processing='rs', suffix_closedness=False)
 
     return learned_mealy
 

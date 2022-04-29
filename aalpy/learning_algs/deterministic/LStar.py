@@ -98,6 +98,8 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type,
 
         # Generate hypothesis
         hypothesis = observation_table.gen_hypothesis(check_for_duplicate_rows=cex_processing is None)
+        if cex_processing == 'rs' and suffix_closedness is False:
+            observation_table.ensure_semantic_suffix_closedness(hypothesis)
 
         if print_level > 1:
             print(f'Hypothesis {learning_rounds}: {len(hypothesis.states)} states.')

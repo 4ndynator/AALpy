@@ -210,6 +210,10 @@ class ObservationTable:
         return automaton
 
     # https://learnlib.de/wp-content/uploads/2013/05/introduction-to-automata-learning-sfm2011.pdf page 26/7
+    # for i in range(21,100):
+    #     seed(i)
+    #     print(i)
+    #     random_mealy_example(number_of_states=10, alphabet_size=2, output_size=2)
     def ensure_semantic_suffix_closedness(self, hypothesis):
         defect = hypothesis.get_canonicity_violation()
         if defect is None:

@@ -5,3 +5,4 @@ from .non_deterministic.AbstractedOnfsmLstar import run_abstracted_ONFSM_Lstar
 from .stochastic.StochasticLStar import run_stochastic_Lstar
 from .stochastic_passive.Alergia import run_Alergia, run_JAlergia
 from .stochastic_passive.ActiveAleriga import run_active_Alergia
+from .stochastic_no_stat.OnfsmLstar import run_experimental_stochastic_smm

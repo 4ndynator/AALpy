@@ -1,8 +1,8 @@
 import time
 
 from aalpy.base import SUL, Oracle
-from aalpy.learning_algs.non_deterministic.OnfsmObservationTable import NonDetObservationTable
-from aalpy.learning_algs.non_deterministic.TraceTree import SULWrapper
+from aalpy.learning_algs.stochastic_no_stat.OnfsmObservationTable import ExperimentalStochasticObservationTable
+from aalpy.learning_algs.stochastic_no_stat.TraceTree import SULWrapper
 from aalpy.utils.HelperFunctions import print_learning_info, print_observation_table, \
     get_available_oracles_and_err_msg, all_suffixes
 
@@ -11,7 +11,7 @@ print_options = [0, 1, 2, 3]
 available_oracles, available_oracles_error_msg = get_available_oracles_and_err_msg()
 
 
-def run_non_det_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, n_sampling=1,
+def run_experimental_stochastic_smm(alphabet: list, sul: SUL, eq_oracle: Oracle, n_sampling=1,
                       max_learning_rounds=None, custom_oracle=False, return_data=False, print_level=2, ):
     """
     Based on ''Learning Finite State Models of Observable Nondeterministic Systems in a Testing Context '' from Fakih
@@ -55,7 +55,7 @@ def run_non_det_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, n_sampling=1,
     sul = SULWrapper(sul)
     eq_oracle.sul = sul
 
-    observation_table = NonDetObservationTable(alphabet, sul, n_sampling)
+    observation_table = ExperimentalStochasticObservationTable(alphabet, sul, n_sampling)
 
     # We fist query the initial row. Then based on output in its cells, we generate new rows in the extended S set,
     # and then we perform membership/input queries for them.
@@ -81,6 +81,7 @@ def run_non_det_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, n_sampling=1,
             observation_table.update_obs_table()
             observation_table.clean_obs_table()
             row_to_close = observation_table.get_row_to_close()
+            print('CLOSING', len(observation_table.S))
 
         # Generate hypothesis
         hypothesis = observation_table.gen_hypothesis()
@@ -119,6 +120,8 @@ def run_non_det_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, n_sampling=1,
 
         # Add all suffixes to the E set and ask membership/input queries.
         observation_table.update_obs_table()
+
+    hypothesis = observation_table.add_transition_probabilities(hypothesis)
 
     total_time = round(time.time() - start_time, 2)
     eq_query_time = round(eq_query_time, 2)

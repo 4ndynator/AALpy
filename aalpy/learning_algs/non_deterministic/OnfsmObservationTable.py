@@ -1,9 +1,11 @@
 from collections import Counter
+from random import choice, random
+from statistics import mean
 
 from aalpy.automata import Onfsm, OnfsmState
 from aalpy.base import Automaton
 from aalpy.learning_algs.non_deterministic.TraceTree import SULWrapper
-
+from aalpy.learning_algs.stochastic.StochasticTeacher import Node
 
 class NonDetObservationTable:
 
@@ -102,16 +104,20 @@ class NonDetObservationTable:
 
         # update_S, update_E = self.S + self.S_dot_A, self.E
 
+        num_samples = 0
+        root_node = Node('dummy')
         for s in update_S:
             for e in update_E:
                 num_s_e_sampled = 0
                 # if self.sampling_counter[s[0] + e] >= len(s[0] + e) + 1 * 2:
                 #     continue
-                while num_s_e_sampled < self.n_samples:
-                    output = tuple(self.sul.query(s[0] + e))
-                    if output[:len(s[1])] == s[1]:
-                        num_s_e_sampled += 1
-                        self.sampling_counter[s[0] + e] += 1
+                if self.sampling_counter[s[0] + e] < mean(self.sampling_counter.values()) - 10:
+                    uncertainty = mean(self.sampling_counter.values()) - self.sampling_counter[s[0] + e]
+                    num_samples += uncertainty
+                    self.add_to_pta(root_node, s, e, num_samples)
+
+        for _ in range(num_samples * 2):
+            self.tree_query(root_node)
 
     def clean_obs_table(self):
         """
@@ -212,3 +218,68 @@ class NonDetObservationTable:
 
         return row_repr
 
+    def add_to_pta(self, root_node, prefix, suffix, uncertainty_value):
+        curr_node = root_node
+
+        for i, o in zip(prefix[0], prefix[1]):
+            curr_node.input_frequencies[i] += uncertainty_value
+            child = curr_node.get_child(i, o)
+            if child:
+                curr_node = child
+            else:
+                new_node = Node(o)
+                curr_node.children[i][o] = new_node
+                curr_node = new_node
+
+        for s in suffix:
+            child = curr_node.get_child(s, 'dummy')
+            if child:
+                curr_node = child
+            else:
+                new_node = Node('dummy')
+                curr_node.children[s]['dummy'] = new_node
+                curr_node = new_node
+
+    def tree_query(self, root_node):
+        self.sul.pre()
+        curr_node = root_node
+
+        inputs = []
+        outputs = []
+
+        while True:
+
+            if curr_node.children:
+                frequency_sum = sum(curr_node.input_frequencies.values())
+                if frequency_sum == 0:
+                    # uniform sampling in case we have no information
+                    inp = choice(list(curr_node.children.keys()))
+                else:
+                    # use float random rather than integers to be able to work with non-integer frequency information
+                    selection_value = random() * frequency_sum
+                    inp = None
+                    for i in curr_node.input_frequencies.keys():
+                        inp = i
+                        selection_value -= curr_node.input_frequencies[i]
+                        if selection_value <= 0:
+                            break
+                    # curr_node.input_frequencies[inp] -= 1
+
+                inputs.append(inp)
+                out = self.sul.step(inp)
+                new_node = curr_node.get_child(inp, out)
+
+                if new_node:
+                    outputs.append(out)
+                    curr_node = new_node
+                else:
+                    self.sampling_counter[inputs] += 1
+                    self.sul.post()
+                    return
+            else:
+                curr_node = root_node
+                for i, o in zip(inputs, outputs):
+                    # self.curr_node.input_frequencies[i] -= 1
+                    curr_node = curr_node.get_child(i, o)
+                self.sul.post()
+                return

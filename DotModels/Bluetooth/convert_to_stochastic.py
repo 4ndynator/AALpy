@@ -75,6 +75,8 @@ def to_smm():
     moore_mdp_state_map = dict()
     initial_mdp_state = None
     for state in model.states:
+        for i, o in state.output_fun.items():
+            state.output_fun[i] = o.replace('|', '_')
         mdp_state = StochasticMealyState(state.state_id)
         moore_mdp_state_map[state.prefix] = mdp_state
         if not state.prefix:
@@ -91,13 +93,13 @@ def to_smm():
             correct_output = state.output_fun[i]
             # if i in {'pairing_req', 'mtu_req'} and mdp_state.output != moore_mdp_state_map[reached_moore].output:
             if state_num % 6 == 0:
-                last_out = model.compute_output_seq(model.initial_state, state.prefix[:-1]) if state.prefix else "NO_RESPONSE"
+                last_out = model.compute_output_seq(model.initial_state, state.prefix[:-1]) if state.prefix else ["no_response"]
                 if not last_out or last_out == correct_output:
-                    last_out = 'NO_RESPONSE'
+                    last_out = ['no_response']
                 mdp_state.transitions[i].append((mdp_state, last_out[-1], 0.2))
                 mdp_state.transitions[i].append((moore_mdp_state_map[reached_state], correct_output, 0.8))
-            if state_num % 5 == 0 and i in {'length_req', 'length_rsp', 'feature_rsp'} and len(state.prefix) == 2:
-                mdp_state.transitions[i].append((moore_mdp_state_map[model.initial_state.prefix], 'SYSTEM_CRASH', 0.1))
+            elif state_num % 5 == 0 and i in {'length_req', 'length_rsp', 'feature_rsp'} and len(state.prefix) == 2:
+                mdp_state.transitions[i].append((moore_mdp_state_map[model.initial_state.prefix], 'crash', 0.1))
                 mdp_state.transitions[i].append((moore_mdp_state_map[reached_state], correct_output, 0.9))
             else:
                 mdp_state.transitions[i].append((moore_mdp_state_map[reached_state], correct_output, 1.))
@@ -109,8 +111,9 @@ def to_smm():
 mdp = to_smm()
 # mdp.visualize()
 # exit()
-# mdp.save(file_path='CC2640R2-no-feature-req-stochastic')
-# exit()
+mdp = mdp.to_mdp()
+mdp.save(file_path='CC2640R2-no-feature-req-stochastic')
+exit()
 # mdp.make_input_complete('self_loop')
 # mdp_sul = StochasticMealySUL(mdp)
 mdp_sul = MdpSUL(mdp.to_mdp())

@@ -18,7 +18,8 @@ def get_properties_file(exp_name):
         'shared_coin': aalpy.paths.path_to_properties + 'shared_coin_eval.props',
         'slot_machine': aalpy.paths.path_to_properties + 'slot_machine_eval.props',
         'mqtt': aalpy.paths.path_to_properties + 'emqtt_two_client.props',
-        'tcp': aalpy.paths.path_to_properties + 'tcp_eval.props'
+        'tcp': aalpy.paths.path_to_properties + 'tcp_eval.props',
+        'bluetooth': aalpy.paths.path_to_properties + 'bluetooth.props',
     }
     return property_files[exp_name]
 
@@ -35,7 +36,11 @@ def get_correct_prop_values(exp_name):
                          'prob5': 0.28567, 'prob6': 0.2500000000000001, 'prob7': 0.025445087448668406},
         'mqtt': {'prob1': 0.9612, 'prob2': 0.34390000000000004, 'prob3': 0.6513215599000001, 'prob4': 0.814697981114816,
                  'prob5': 0.7290000000000001},
-        'tcp': {'prob1': 0.19, 'prob2': 0.5695327900000001, 'prob3': 0.7712320754503901, 'prob4': 0.8784233454094308}
+        'tcp': {'prob1': 0.19, 'prob2': 0.5695327900000001, 'prob3': 0.7712320754503901, 'prob4': 0.8784233454094308},
+        'bluetooth': {'prop1': 0.16800000000000004, 'prop2': 0.3926480000000001, 'prop3': 0.5572338000000001,
+                      'prop4': 0.6772233874640001, 'prop5': 0.7646958490393682, 'prop6': 0.8284632739463244,
+                      'prop7': 0.36000000000000004, 'prop8': 0.5904, 'prop9': 0.7902848, 'prop10': 0.8926258176000001}
+
     }
     return list(correct_model_properties[exp_name].values())
 

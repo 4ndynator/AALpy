@@ -79,17 +79,17 @@ def side_by_side():
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(5, 3))
 
-    axes[0].plot(steps, original_values_crash, label='Correct Values')
-    axes[0].plot(steps, smm_crash_property, label='SMM Values')
-    axes[0].plot(steps, mdp_crash_property, label='MDP Values')
-    axes[0].plot(steps, random_input_crash, label='Random Inputs')
+    axes[0].plot_side_by_side()
+    axes[0].plot_side_by_side()
+    axes[0].plot_side_by_side()
+    axes[0].plot_side_by_side()
     axes[0].set_xlabel('Steps to \'crash\'')
     axes[0].set_ylabel('Property Value')
 
-    axes[1].plot(steps, original_values_no_response, label='Correct Values')
-    axes[1].plot(steps, smm_no_response, label='SMM Values')
-    axes[1].plot(steps, mdp_no_response, label='MDP Values')
-    axes[1].plot(steps, random_input_no_response, label='Random Inputs')
+    axes[1].plot_side_by_side()
+    axes[1].plot_side_by_side()
+    axes[1].plot_side_by_side()
+    axes[1].plot_side_by_side()
     axes[1].set_xlabel('Steps to \'no_response\'')
     axes[1].set_ylabel('Property Value')
 

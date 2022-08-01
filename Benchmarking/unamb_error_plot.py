@@ -477,9 +477,9 @@ def side_by_side():
 
     fig, (plt1, plt2) = plt.subplots(1, 2, figsize=(10, 3))
 
-    plt1.plot(r, second_grid_max_err_2, label='Maximum Error')
-    plt1.plot(r, second_grid_avr_err_2, label='Average Error')
-    plt1.plot(r, second_grid_unamb_2, label='Unambiguous Rows')
+    plt1.plot_side_by_side()
+    plt1.plot_side_by_side()
+    plt1.plot_side_by_side()
 
     # second_grid_avr_err_2 looks nice
     # plt.plot(r, [100 - r for r in second_grid_unamb_2], label='unamb_%')
@@ -490,9 +490,9 @@ def side_by_side():
     plt1.grid(axis='y')
     plt1.legend()
 
-    plt2.plot(r, mqtt_max_err_1, label='Maximum Error')
-    plt2.plot(r, mqtt_avr_err_1, label='Average Error')
-    plt2.plot(r, mqtt_unamb_1, label='Unambiguous Rows')
+    plt2.plot_side_by_side()
+    plt2.plot_side_by_side()
+    plt2.plot_side_by_side()
 
     # second_grid_avr_err_2 looks nice
     # plt.plot(r, [100 - r for r in second_grid_unamb_2], label='unamb_%')

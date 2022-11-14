@@ -2,6 +2,12 @@ from aalpy.base import SUL
 from aalpy.utils.HelperFunctions import all_suffixes, all_prefixes
 
 
+def counterexample_successfully_processed(sul, cex, hypothesis):
+    cex_outputs = sul.query(cex)
+    hyp_outputs = hypothesis.execute_sequence(hypothesis.initial_state, cex)
+    return cex_outputs[-1] == hyp_outputs[-1]
+
+
 def longest_prefix_cex_processing(s_union_s_dot_a: list, cex: tuple, closedness='suffix'):
     """
     Suffix processing strategy found in Shahbaz-Groz paper 'Inferring Mealy Machines'.

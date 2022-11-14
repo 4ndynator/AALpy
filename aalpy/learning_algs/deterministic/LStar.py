@@ -2,7 +2,8 @@ import time
 
 from aalpy.base import Oracle, SUL
 from aalpy.utils.HelperFunctions import extend_set, print_learning_info, print_observation_table, all_prefixes
-from .CounterExampleProcessing import longest_prefix_cex_processing, rs_cex_processing
+from .CounterExampleProcessing import longest_prefix_cex_processing, rs_cex_processing, \
+    counterexample_successfully_processed
 from .ObservationTable import ObservationTable
 from ...base.SUL import CacheSUL
 
@@ -106,7 +107,8 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         # Generate hypothesis
         hypothesis = observation_table.gen_hypothesis(check_for_duplicate_rows=cex_processing is None)
 
-        # Find counterexample
+        # Find counterexample if none has previously been found (first round) and cex is successfully processed
+        # (not a counterexample in the current hypothesis)
         if cex is None or counterexample_successfully_processed(sul, cex, hypothesis):
             learning_rounds += 1
 
@@ -161,7 +163,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         'learning_time': learning_time,
         'eq_oracle_time': eq_query_time,
         'total_time': total_time,
-        'characterization set': observation_table.E
+        'characterization_set': observation_table.E
     }
     if cache_and_non_det_check:
         info['cache_saved'] = sul.num_cached_queries
@@ -175,7 +177,3 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
     return hypothesis
 
 
-def counterexample_successfully_processed(sul, cex, hypothesis):
-    cex_outputs = sul.query(cex)
-    hyp_outputs = hypothesis.execute_sequence(hypothesis.initial_state, cex)
-    return cex_outputs[-1] == hyp_outputs[-1]

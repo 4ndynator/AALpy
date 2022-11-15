@@ -155,7 +155,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
 
     info = {
         'learning_rounds': learning_rounds,
-        'automaton_size': len(hypothesis.states),
+        'automaton_size': hypothesis.size,
         'queries_learning': sul.num_queries,
         'steps_learning': sul.num_steps,
         'queries_eq_oracle': eq_oracle.num_queries,

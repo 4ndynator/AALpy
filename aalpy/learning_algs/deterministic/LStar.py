@@ -8,12 +8,12 @@ from .ObservationTable import ObservationTable
 from ...base.SUL import CacheSUL
 
 counterexample_processing_strategy = [None, 'rs', 'longest_prefix']
-closedness_options = ['prefix', 'suffix']
+closedness_options = ['prefix', 'suffix', 'suffix_all', 'prefix_all']
 print_options = [0, 1, 2, 3]
 
 
 def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, samples=None,
-              closing_strategy='longest_first', cex_processing='rs', suffix_closedness=True, closedness_type='suffix',
+              closing_strategy='single', cex_processing='rs', suffix_closedness=True, closedness_type='prefix_all',
               max_learning_rounds=None, cache_and_non_det_check=True, return_data=False, print_level=2):
     """
     Executes L* algorithm.
@@ -59,6 +59,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         automaton of type automaton_type (dict containing all information about learning if 'return_data' is True)
 
     """
+
     assert cex_processing in counterexample_processing_strategy
     assert closedness_type in closedness_options
     assert print_level in print_options
@@ -72,12 +73,19 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             for input_seq, output_seq in samples:
                 sul.cache.add_to_cache(input_seq, output_seq)
 
+    whole_suffix_in_obs_table = True if 'all' in closedness_type else False
+
+    # as observation table entries record all prefixes of each element of E set, closedness is implicit iff
+    # E set is prefix closed
+    if closedness_type == 'prefix':
+        suffix_closedness = False
+
     start_time = time.time()
     eq_query_time = 0
     learning_rounds = 1
     hypothesis = None
 
-    observation_table = ObservationTable(alphabet, sul, automaton_type)
+    observation_table = ObservationTable(alphabet, sul, automaton_type, whole_suffix_in_obs_table)
 
     # Initial update of observation table, for empty row
     observation_table.update_obs_table()
@@ -175,5 +183,3 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         return hypothesis, info
 
     return hypothesis
-
-

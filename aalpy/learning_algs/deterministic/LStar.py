@@ -8,12 +8,12 @@ from .ObservationTable import ObservationTable
 from ...base.SUL import CacheSUL
 
 counterexample_processing_strategy = [None, 'rs', 'longest_prefix']
-closedness_options = ['prefix', 'suffix', 'suffix_all', 'prefix_all']
+closedness_options = ['suffix_all', 'suffix_single', 'prefix']
 print_options = [0, 1, 2, 3]
 
 
 def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, samples=None,
-              closing_strategy='single', cex_processing='rs', suffix_closedness=True, closedness_type='prefix_all',
+              closing_strategy='longest_first', cex_processing='rs', closedness_type='prefix',
               max_learning_rounds=None, cache_and_non_det_check=True, return_data=False, print_level=2):
     """
     Executes L* algorithm.
@@ -36,8 +36,6 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
 
         cex_processing: Counterexample processing strategy. Either None, 'rs' (Riverst-Schapire) or 'longest_prefix'.
             (Default value = 'rs')
-
-        suffix_closedness: if True E set will be suffix closed, (Default value = True)
 
         closedness_type: either 'suffix' or 'prefix'. If suffix, E set will be suffix closed, prefix closed otherwise
 
@@ -73,12 +71,10 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             for input_seq, output_seq in samples:
                 sul.cache.add_to_cache(input_seq, output_seq)
 
-    whole_suffix_in_obs_table = True if 'all' in closedness_type else False
+    whole_suffix_in_obs_table = True
 
-    # as observation table entries record all prefixes of each element of E set, closedness is implicit iff
-    # E set is prefix closed
-    if closedness_type == 'prefix':
-        suffix_closedness = False
+    suffix_closedness = 'all' in closedness_type
+    e_set_closedness_type = 'suffix' if closedness_type != 'prefix' else 'prefix'
 
     start_time = time.time()
     eq_query_time = 0
@@ -90,6 +86,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
     # Initial update of observation table, for empty row
     observation_table.update_obs_table()
     cex = None
+
     while True:
         if max_learning_rounds and learning_rounds - 1 == max_learning_rounds:
             break
@@ -150,9 +147,9 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
 
         elif cex_processing == 'longest_prefix':
             cex_suffixes = longest_prefix_cex_processing(observation_table.S + list(observation_table.s_dot_a()),
-                                                         cex, closedness_type)
+                                                         cex, e_set_closedness_type)
         else:
-            cex_suffixes = rs_cex_processing(sul, cex, hypothesis, suffix_closedness, closedness_type)
+            cex_suffixes = rs_cex_processing(sul, cex, hypothesis, suffix_closedness, e_set_closedness_type)
 
         added_suffixes = extend_set(observation_table.E, cex_suffixes)
         observation_table.update_obs_table(e_set=added_suffixes)

@@ -76,9 +76,13 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
     suffix_closedness = 'all' in closedness_type
     e_set_closedness_type = 'suffix' if closedness_type != 'prefix' else 'prefix'
 
+    # 'longest_prefix' cex processing can run in infinite loops if E set is not suffix closed
+    if cex_processing == 'longest_prefix':
+        e_set_closedness_type, suffix_closedness = 'suffix', True
+
     start_time = time.time()
     eq_query_time = 0
-    learning_rounds = 1
+    learning_rounds = 0
     hypothesis = None
 
     observation_table = ObservationTable(alphabet, sul, automaton_type, whole_suffix_in_obs_table)

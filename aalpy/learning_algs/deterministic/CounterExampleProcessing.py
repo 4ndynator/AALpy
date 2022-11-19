@@ -85,7 +85,7 @@ def rs_cex_processing(sul: SUL, cex: tuple, hypothesis, suffix_closedness=True, 
         if mq[-1] == cex_out[-1]:  # only check if the last element is the same as the cex
             lower = mid + 1
             if upper < lower:
-                suffix = tuple(d[1:])
+                suffix = d[1:]
                 break
         else:
             upper = mid - 1

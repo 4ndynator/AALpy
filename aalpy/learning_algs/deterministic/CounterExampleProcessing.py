@@ -62,6 +62,8 @@ def rs_cex_processing(sul: SUL, cex: tuple, hypothesis, suffix_closedness=True, 
 
     """
     # cex_out = self.sul.query(tuple(cex))
+    if len(cex) == 1:
+        return [cex]
     cex_out = sul.query(cex)
     cex_input = list(cex)
 

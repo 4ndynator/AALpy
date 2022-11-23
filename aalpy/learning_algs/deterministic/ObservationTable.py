@@ -102,7 +102,6 @@ class ObservationTable:
             a+e values that are the causes of inconsistency
 
         """
-        causes_of_inconsistency = set()
         for i, s1 in enumerate(self.S):
             for s2 in self.S[i + 1:]:
                 if self.T[s1] == self.T[s2]:
@@ -110,11 +109,16 @@ class ObservationTable:
                         if self.T[s1 + a] != self.T[s2 + a]:
                             for index, e in enumerate(self.E):
                                 if self.T[s1 + a][index] != self.T[s2 + a][index]:
-                                    causes_of_inconsistency.add(a + e)
+                                    print('------------')
+                                    print(s1, s2, a, e)
+                                    print(self.E, a+e in self.E)
+                                    print(self.T[s1])
+                                    print(self.T[s2])
+                                    print(self.T[s1 + a])
+                                    print(self.T[s2 + a])
+                                    return [(a + e)]
 
-        if not causes_of_inconsistency:
-            return None
-        return causes_of_inconsistency
+        return None
 
     def s_dot_a(self):
         """
@@ -149,7 +153,7 @@ class ObservationTable:
         for s in update_S:
             for e in update_E:
                 if len(self.T[s]) != len(self.E):
-                    output = tuple(self.sul.query(s + e))
+                    output = (self.sul.query(s + e))
                     if self.prefixes_in_cell and len(e) > 1:
                         obs_table_entry = tuple([output[-len(e):]],)
                     else:
@@ -179,14 +183,7 @@ class ObservationTable:
         # counterexample processing removes the need for consistency check, as it ensures
         # that no two rows in the S set are the same
         if check_for_duplicate_rows:
-            rows_to_delete = set()
-            for i, s1 in enumerate(self.S):
-                for s2 in self.S[i + 1:]:
-                    if self.T[s1] == self.T[s2]:
-                        rows_to_delete.add(s2)
-
-            for row in rows_to_delete:
-                self.S.remove(row)
+            self.delete_duplicate_rows()
 
         # create states based on S set
         stateCounter = 0
@@ -220,3 +217,14 @@ class ObservationTable:
         automaton.characterization_set = self.E
 
         return automaton
+
+    def delete_duplicate_rows(self):
+        rows_to_delete = set()
+        self.S.sort(key=len)
+        for i, s1 in enumerate(self.S):
+            for s2 in self.S[i + 1:]:
+                if self.T[s1] == self.T[s2]:
+                    rows_to_delete.add(s2)
+
+        for row in rows_to_delete:
+            self.S.remove(row)

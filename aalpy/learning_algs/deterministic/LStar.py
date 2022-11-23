@@ -98,9 +98,10 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         if not cex_processing:
             inconsistent_rows = observation_table.get_causes_of_inconsistency()
             while inconsistent_rows is not None:
-                extend_set(observation_table.E, inconsistent_rows)
-                observation_table.update_obs_table(e_set=inconsistent_rows)
+                added_suffix = extend_set(observation_table.E, inconsistent_rows)
+                observation_table.update_obs_table(e_set=added_suffix)
                 inconsistent_rows = observation_table.get_causes_of_inconsistency()
+                # print(inconsistent_rows)
 
         # Close observation table
         rows_to_close = observation_table.get_rows_to_close(closing_strategy)
@@ -111,6 +112,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
                 rows_to_query.extend([row + (a,) for a in alphabet])
             observation_table.update_obs_table(s_set=rows_to_query)
             rows_to_close = observation_table.get_rows_to_close(closing_strategy)
+
 
         # Generate hypothesis
         hypothesis = observation_table.gen_hypothesis(check_for_duplicate_rows=cex_processing is None)
@@ -143,6 +145,9 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         # Process counterexample and ask membership queries
         if not cex_processing:
             s_to_update = []
+            print(cex)
+            print(all_prefixes(cex))
+            input('e')
             added_rows = extend_set(observation_table.S, all_prefixes(cex))
             s_to_update.extend(added_rows)
             for p in added_rows:

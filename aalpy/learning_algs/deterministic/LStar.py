@@ -75,14 +75,14 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             for input_seq, output_seq in samples:
                 sul.cache.add_to_cache(input_seq, output_seq)
 
-    # 'longest_prefix' cex processing can run in infinite loops if E set is not suffix closed
-    # if cex_processing == 'longest_prefix':
-    #    e_set_closedness_type, suffix_closedness = 'suffix', True
-
     start_time = time.time()
     eq_query_time = 0
     learning_rounds = 0
     hypothesis = None
+
+    # default L* cannot cope with all prefixes being in observation table as it can break incosistency
+    if cex_processing is None:
+        all_prefixes_in_obs_table = False
 
     observation_table = ObservationTable(alphabet, sul, automaton_type, all_prefixes_in_obs_table)
 
@@ -99,9 +99,11 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             inconsistent_rows = observation_table.get_causes_of_inconsistency()
             while inconsistent_rows is not None:
                 added_suffix = extend_set(observation_table.E, inconsistent_rows)
+                if added_suffix:
+                    i = 111
                 observation_table.update_obs_table(e_set=added_suffix)
                 inconsistent_rows = observation_table.get_causes_of_inconsistency()
-                # print(inconsistent_rows)
+
 
         # Close observation table
         rows_to_close = observation_table.get_rows_to_close(closing_strategy)
@@ -145,9 +147,6 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         # Process counterexample and ask membership queries
         if not cex_processing:
             s_to_update = []
-            print(cex)
-            print(all_prefixes(cex))
-            input('e')
             added_rows = extend_set(observation_table.S, all_prefixes(cex))
             s_to_update.extend(added_rows)
             for p in added_rows:

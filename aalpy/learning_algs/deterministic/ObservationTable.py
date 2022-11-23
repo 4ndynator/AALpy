@@ -8,7 +8,7 @@ closing_options = ['shortest_first', 'longest_first', 'single', 'single_longest'
 
 
 class ObservationTable:
-    def __init__(self, alphabet: list, sul: SUL, automaton_type="mealy", prefixes_in_cell=False):
+    def __init__(self, alphabet: list, sul: SUL, automaton_type, prefixes_in_cell):
         """
         Constructor of the observation table. Initial queries are asked in the constructor.
 
@@ -109,13 +109,17 @@ class ObservationTable:
                         if self.T[s1 + a] != self.T[s2 + a]:
                             for index, e in enumerate(self.E):
                                 if self.T[s1 + a][index] != self.T[s2 + a][index]:
-                                    print('------------')
-                                    print(s1, s2, a, e)
-                                    print(self.E, a+e in self.E)
-                                    print(self.T[s1])
-                                    print(self.T[s2])
-                                    print(self.T[s1 + a])
-                                    print(self.T[s2 + a])
+                                    print('----------')
+                                    print('row 1', s1)
+                                    print('row 2', s2)
+                                    print('a', a)
+                                    print('e', e, index)
+                                    print('row 1 + a', self.T[s1 + a])
+                                    print('row 2 + a', self.T[s2 + a])
+                                    print(self.sul.query(s1 + a + e))
+                                    print(self.sul.query(s2 + a + e))
+                                    if self.T[s1 + a][index] == self.sul.query(s1 + a + e)[-1] or self.T[s2 + a][index] == self.sul.query(s2 + a + e)[-1]:
+                                        print(1)
                                     return [(a + e)]
 
         return None
@@ -183,7 +187,14 @@ class ObservationTable:
         # counterexample processing removes the need for consistency check, as it ensures
         # that no two rows in the S set are the same
         if check_for_duplicate_rows:
-            self.delete_duplicate_rows()
+            rows_to_delete = set()
+            for i, s1 in enumerate(self.S):
+                for s2 in self.S[i + 1:]:
+                    if self.T[s1] == self.T[s2]:
+                        rows_to_delete.add(s2)
+
+            for row in rows_to_delete:
+                self.S.remove(row)
 
         # create states based on S set
         stateCounter = 0
@@ -217,14 +228,3 @@ class ObservationTable:
         automaton.characterization_set = self.E
 
         return automaton
-
-    def delete_duplicate_rows(self):
-        rows_to_delete = set()
-        self.S.sort(key=len)
-        for i, s1 in enumerate(self.S):
-            for s2 in self.S[i + 1:]:
-                if self.T[s1] == self.T[s2]:
-                    rows_to_delete.add(s2)
-
-        for row in rows_to_delete:
-            self.S.remove(row)

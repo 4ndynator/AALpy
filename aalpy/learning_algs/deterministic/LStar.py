@@ -13,9 +13,9 @@ print_options = [0, 1, 2, 3]
 
 
 def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, samples=None,
-              closing_strategy='single', cex_processing='rs', e_set_suffix_closed=False,
-              all_prefixes_in_obs_table=True, max_learning_rounds=None,
-              cache_and_non_det_check=True, return_data=False, print_level=2):
+              closing_strategy='shortest_first', cex_processing='rs',
+              e_set_suffix_closed=False, all_prefixes_in_obs_table=True,
+              max_learning_rounds=None, cache_and_non_det_check=True, return_data=False, print_level=2):
     """
     Executes L* algorithm.
 

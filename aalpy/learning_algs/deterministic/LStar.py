@@ -99,11 +99,8 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             inconsistent_rows = observation_table.get_causes_of_inconsistency()
             while inconsistent_rows is not None:
                 added_suffix = extend_set(observation_table.E, inconsistent_rows)
-                if added_suffix:
-                    i = 111
                 observation_table.update_obs_table(e_set=added_suffix)
                 inconsistent_rows = observation_table.get_causes_of_inconsistency()
-
 
         # Close observation table
         rows_to_close = observation_table.get_rows_to_close(closing_strategy)
@@ -115,10 +112,8 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
             observation_table.update_obs_table(s_set=rows_to_query)
             rows_to_close = observation_table.get_rows_to_close(closing_strategy)
 
-
         # Generate hypothesis
         hypothesis = observation_table.gen_hypothesis(check_for_duplicate_rows=cex_processing is None)
-
         # Find counterexample if none has previously been found (first round) and cex is successfully processed
         # (not a counterexample in the current hypothesis)
         if cex is None or counterexample_successfully_processed(sul, cex, hypothesis):

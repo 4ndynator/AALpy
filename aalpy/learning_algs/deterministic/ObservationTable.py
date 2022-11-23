@@ -36,7 +36,7 @@ class ObservationTable:
         # set of index i. Therefore it is important to keep E set ordered and ask membership queries only when needed
         # and in correct order. It would make more sense to implement it as a defaultdict(dict) where you can access
         # elements via self.T[s][e], but it causes significant performance hit.
-        self.T = defaultdict(tuple)
+        self.T = defaultdict(dict)
 
         self.sul = sul
         empty_word = tuple()
@@ -68,10 +68,10 @@ class ObservationTable:
         rows_to_close = []
         row_values = set()
 
-        s_rows = {self.T[s] for s in self.S}
+        s_rows = {self._row_to_hashable(s) for s in self.S}
 
         for t in self.s_dot_a():
-            row_t = self.T[t]
+            row_t = self._row_to_hashable(t)
             if row_t not in s_rows and row_t not in row_values:
                 rows_to_close.append(t)
                 row_values.add(row_t)
@@ -118,6 +118,8 @@ class ObservationTable:
                                     print('row 2 + a', self.T[s2 + a])
                                     print(self.sul.query(s1 + a + e))
                                     print(self.sul.query(s2 + a + e))
+                                    print(s1 + a + e)
+                                    print(s2 + a + e)
                                     if self.T[s1 + a][index] == self.sul.query(s1 + a + e)[-1] or self.T[s2 + a][index] == self.sul.query(s2 + a + e)[-1]:
                                         print(1)
                                     return [(a + e)]
@@ -156,13 +158,14 @@ class ObservationTable:
 
         for s in update_S:
             for e in update_E:
-                if len(self.T[s]) != len(self.E):
-                    output = (self.sul.query(s + e))
-                    if self.prefixes_in_cell and len(e) > 1:
-                        obs_table_entry = tuple([output[-len(e):]],)
-                    else:
-                        obs_table_entry = (output[-1],)
-                    self.T[s] += obs_table_entry
+                if e in self.T[s].keys():
+                    continue
+                output = tuple(self.sul.query(s + e))
+                if self.prefixes_in_cell and len(e) > 1:
+                    obs_table_entry = tuple([output[-len(e):]], )
+                else:
+                    obs_table_entry = output[-1]
+                self.T[s][e] = obs_table_entry
 
     def gen_hypothesis(self, check_for_duplicate_rows=False) -> Automaton:
         """
@@ -203,14 +206,14 @@ class ObservationTable:
 
             if self.automaton_type == 'dfa':
                 states_dict[prefix] = DfaState(state_id)
-                states_dict[prefix].is_accepting = self.T[prefix][0]
+                states_dict[prefix].is_accepting = self.T[prefix][()]
             elif self.automaton_type == 'moore':
-                states_dict[prefix] = MooreState(state_id, output=self.T[prefix][0])
+                states_dict[prefix] = MooreState(state_id, output=self.T[prefix][()])
             else:
                 states_dict[prefix] = MealyState(state_id)
 
             states_dict[prefix].prefix = prefix
-            state_distinguish[tuple(self.T[prefix])] = states_dict[prefix]
+            state_distinguish[self._row_to_hashable(prefix)] = states_dict[prefix]
 
             if not prefix:
                 initial_state = states_dict[prefix]
@@ -219,12 +222,15 @@ class ObservationTable:
         # add transitions based on extended S set
         for prefix in self.S:
             for a in self.A:
-                state_in_S = state_distinguish[self.T[prefix + a]]
+                state_in_S = state_distinguish[self._row_to_hashable(prefix + a)]
                 states_dict[prefix].transitions[a[0]] = state_in_S
                 if self.automaton_type == 'mealy':
-                    states_dict[prefix].output_fun[a[0]] = self.T[prefix][self.E.index(a)]
+                    states_dict[prefix].output_fun[a[0]] = self.T[prefix][a]
 
         automaton = automaton_class[self.automaton_type](initial_state, list(states_dict.values()))
         automaton.characterization_set = self.E
 
         return automaton
+
+    def _row_to_hashable(self, prefix):
+        return tuple(self.T[prefix][e] for e in self.E)

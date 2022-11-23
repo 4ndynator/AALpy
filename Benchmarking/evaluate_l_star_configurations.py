@@ -15,16 +15,16 @@ obs_table_cell_prefixes = [True, False]
 closedness_types = ['suffix_single', 'suffix_all', ]
 cex_processing = [None, 'longest_prefix', 'rs']
 
-automata_size = [500, 1000 ]
+automata_size = [1000 ]
 input_sizes = [2, 3]
 output_sizes = [3, ]
-num_repeats = 10
+num_repeats = 1
 
 test_models = []
 for size in automata_size:
     for i in input_sizes:
         for o in output_sizes:
-            random_model = generate_random_deterministic_automata('mealy', size, i, o, )
+            random_model = generate_random_deterministic_automata('dfa', size, i, o, num_accepting_states=100)
             test_models.append(random_model)
 
 tc = 0
@@ -43,9 +43,9 @@ for test_model in test_models:
                         sul = MealySUL(test_model)
                         eq_oracle = RandomWMethodEqOracle(input_al, sul, walks_per_state=10, walk_len=15)
                         model, info = run_Lstar(input_al, sul, eq_oracle, 'mealy',
-                                                closedness_type=closedness_type,
                                                 closing_strategy=closing_strategy,
                                                 cex_processing=cex,
+                                                e_set_suffix_closed=True,
                                                 all_prefixes_in_obs_table=prefix_in_cell,
                                                 print_level=0,
                                                 return_data=True)

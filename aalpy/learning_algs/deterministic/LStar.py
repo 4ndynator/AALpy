@@ -134,6 +134,9 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         if cex is None:
             break
 
+        # make sure counterexample is a tuple in case oracle returns a list
+        cex = tuple(cex)
+
         if print_level == 3:
             print('Counterexample', cex)
 

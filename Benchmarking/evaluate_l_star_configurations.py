@@ -5,26 +5,26 @@ from statistics import mean
 
 from aalpy.SULs import DfaSUL, MealySUL
 from aalpy.learning_algs import run_Lstar
-from aalpy.oracles import StatePrefixEqOracle, RandomWMethodEqOracle
+from aalpy.oracles import StatePrefixEqOracle, RandomWMethodEqOracle, RandomWalkEqOracle, RandomWordEqOracle
 from aalpy.utils import generate_random_deterministic_automata
 
-closing_strategies = ['shortest_first', 'longest_first', 'single', 'single_longest']
-closing_strategies = ['shortest_first']
+#closing_strategies = ['shortest_first']
 
+closing_strategies = ['shortest_first', 'longest_first', 'single', 'single_longest']
 obs_table_cell_prefixes = [True, False]
 closedness_types = ['suffix_single', 'suffix_all', ]
 cex_processing = [None, 'longest_prefix', 'rs']
 
-automata_size = [1000 ]
-input_sizes = [2, 3]
+automata_size = [300 ]
+input_sizes = [2,]
 output_sizes = [3, ]
-num_repeats = 1
+num_repeats = 10
 
 test_models = []
 for size in automata_size:
     for i in input_sizes:
         for o in output_sizes:
-            random_model = generate_random_deterministic_automata('dfa', size, i, o, num_accepting_states=100)
+            random_model = generate_random_deterministic_automata('dfa', size, i, o, num_accepting_states=20)
             test_models.append(random_model)
 
 tc = 0
@@ -41,8 +41,8 @@ for test_model in test_models:
                         print(round(tc / num_exp * 100, 2))
                         # seed(tc)
                         sul = MealySUL(test_model)
-                        eq_oracle = RandomWMethodEqOracle(input_al, sul, walks_per_state=10, walk_len=15)
-                        model, info = run_Lstar(input_al, sul, eq_oracle, 'mealy',
+                        eq_oracle = RandomWordEqOracle(input_al, sul, num_walks=500, min_walk_len=5, max_walk_len=20)
+                        model, info = run_Lstar(input_al, sul, eq_oracle, 'dfa',
                                                 closing_strategy=closing_strategy,
                                                 cex_processing=cex,
                                                 e_set_suffix_closed=True,

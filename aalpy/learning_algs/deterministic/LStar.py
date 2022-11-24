@@ -33,7 +33,7 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         total interaction with the system. Syntax: list of [(input_sequence, output_sequence)] or None
 
         closing_strategy: closing strategy used in the close method. Either 'longest_first', 'shortest_first' or
-            'single' (Default value = 'longest_first')
+            'single' (Default value = 'shortest_first')
 
         cex_processing: Counterexample processing strategy. Either None, 'rs' (Riverst-Schapire) or 'longest_prefix'.
             (Default value = 'rs')
@@ -41,11 +41,9 @@ def run_Lstar(alphabet: list, sul: SUL, eq_oracle: Oracle, automaton_type, sampl
         e_set_suffix_closed: True option ensures that E set is suffix closed,
             False adds just a single suffix per counterexample.
 
-        all_prefixes_in_obs_table: if True, entries of observation tale will contain the whole output of the whole
-            suffix, otherwise just the last output
-
-        meaning that all prefixes of the suffix will be added. If false, just a single suffix will be added.
-            (Default value = 'suffix')
+        all_prefixes_in_obs_table: if True, entries of observation table will contain the whole output of the whole
+            suffix, otherwise just the last output meaning that all prefixes of the suffix will be added.
+            If False, just a single suffix will be added.
 
         max_learning_rounds: number of learning rounds after which learning will terminate (Default value = None)
 

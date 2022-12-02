@@ -164,3 +164,43 @@ class StochasticMealySUL(SUL):
 
     def step(self, letter):
         return self.smm.step(letter)
+
+
+class AllWeatherSUL(SUL):
+    def __init__(self, onfsm: Onfsm):
+        super().__init__()
+        self.onfsm = onfsm
+        self.current_states_prefixes = []
+
+    def pre(self):
+        self.onfsm.reset_to_initial()
+        self.current_states_prefixes = [((), ())]
+
+    def post(self):
+        pass
+
+    def query(self, word: tuple) -> set:
+        self.pre()
+        # Empty string for DFA
+        out = [self.step(letter) for letter in word][-1]
+        self.post()
+        self.num_queries += 1
+        self.num_steps += len(word)
+        return out
+
+    def step(self, letter):
+        new_reached_states = []
+        for inputs, outputs in self.current_states_prefixes:
+            self.onfsm.reset_to_initial()
+            new_inputs, new_outputs = inputs, outputs
+            if inputs and outputs:
+                for i, o in zip(inputs, outputs):
+                    self.onfsm.step_to(i, o)
+            for output, new_state in self.onfsm.current_state.transitions[letter]:
+                new_inputs += (letter,)
+                new_outputs += (output,)
+                new_reached_states.append((new_inputs, new_outputs))
+
+        self.current_states_prefixes = new_reached_states
+        return set([o[-1] for _, o in new_reached_states])
+
